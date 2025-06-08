@@ -77,7 +77,7 @@ export class YoutubeTranscript {
         ...(config?.lang && { 'Accept-Language': config.lang }),
         'Content-Type': 'application/json',
         Origin: 'https://www.youtube.com',
-        Referer: `https://www.youtube.com/watch?v=${identifier}`
+        Referer: 'https://www.youtube.com/watch?v=LyXweue69qc'
       },
       body: JSON.stringify({
         context: {
