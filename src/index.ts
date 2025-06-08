@@ -100,6 +100,10 @@ export class YoutubeTranscript {
           splittedHTML[1].split(',"videoDetails')[0].replace('\n', '')
         );
       } catch (e) {
+        const altMatch = videoPageBody.match(/"captions":\s*({[^}]+})/);
+        if (altMatch) {
+            return JSON.parse(altMatch[1]);
+        }
         return undefined;
       }
     })()?.['playerCaptionsTracklistRenderer'];
