@@ -23,6 +23,7 @@ function __awaiter(thisArg, _arguments, P, generator) {
     });
 }const RE_YOUTUBE = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
 const USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.83 Safari/537.36,gzip(gfe)';
+const RE_XML_TRANSCRIPT = /<text start="([^"]*)" dur="([^"]*)">([^<]*)<\/text>/g;
 class YoutubeTranscriptError extends Error {
     constructor(message) {
         super(`[YoutubeTranscript] 🚨 ${message}`);
@@ -95,7 +96,39 @@ class YoutubeTranscript {
                 }),
             };
             const InnerTubeApiResponse = yield fetch('https://www.youtube.com/youtubei/v1/player?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8', options);
-            throw new Error(`Innertube ${InnerTubeApiResponse.status}, ${InnerTubeApiResponse.json} `);
+            console.log("[DEBUG][YoutubeTranscript] status:", InnerTubeApiResponse.status);
+            console.log("[DEBUG][YoutubeTranscript] first 400 chars:", InnerTubeApiResponse.json());
+            const { captions: { playerCaptionsTracklistRenderer: captions } } = yield InnerTubeApiResponse.json();
+            if (!captions) {
+                throw new YoutubeTranscriptDisabledError(videoId);
+            }
+            if (!('captionTracks' in captions)) {
+                throw new YoutubeTranscriptNotAvailableError(videoId);
+            }
+            if ((config === null || config === void 0 ? void 0 : config.lang) &&
+                !captions.captionTracks.some((track) => track.languageCode === (config === null || config === void 0 ? void 0 : config.lang))) {
+                throw new YoutubeTranscriptNotAvailableLanguageError(config === null || config === void 0 ? void 0 : config.lang, captions.captionTracks.map((track) => track.languageCode), videoId);
+            }
+            const transcriptURL = ((config === null || config === void 0 ? void 0 : config.lang)
+                ? captions.captionTracks.find((track) => track.languageCode === (config === null || config === void 0 ? void 0 : config.lang))
+                : captions.captionTracks[0]).baseUrl;
+            const transcriptResponse = yield fetch(transcriptURL, {
+                headers: Object.assign(Object.assign({}, ((config === null || config === void 0 ? void 0 : config.lang) && { 'Accept-Language': config.lang })), { 'User-Agent': USER_AGENT }),
+            });
+            if (!transcriptResponse.ok) {
+                throw new YoutubeTranscriptNotAvailableError(videoId);
+            }
+            const transcriptBody = yield transcriptResponse.text();
+            const results = [...transcriptBody.matchAll(RE_XML_TRANSCRIPT)];
+            return results.map((result) => {
+                var _a;
+                return ({
+                    text: result[3],
+                    duration: parseFloat(result[2]),
+                    offset: parseFloat(result[1]),
+                    lang: (_a = config === null || config === void 0 ? void 0 : config.lang) !== null && _a !== void 0 ? _a : captions.captionTracks[0].languageCode,
+                });
+            });
         });
     }
     /**
