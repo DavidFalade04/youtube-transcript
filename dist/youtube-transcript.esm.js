@@ -98,6 +98,8 @@ class YoutubeTranscript {
                 }),
             };
             const InnerTubeApiResponse = yield fetch('https://www.youtube.com/youtubei/v1/player?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8', options);
+            console.log("[DEBUG][YoutubeTranscript] status:", InnerTubeApiResponse.status);
+            console.log("[DEBUG][YoutubeTranscript] first 400 chars:", yield InnerTubeApiResponse.json());
             const { captions: { playerCaptionsTracklistRenderer: captions } } = yield InnerTubeApiResponse.json();
             if (!captions) {
                 throw new YoutubeTranscriptDisabledError(videoId);
