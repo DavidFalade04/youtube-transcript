@@ -82,6 +82,9 @@ export class YoutubeTranscript {
     );
     const videoPageBody = await videoPageResponse.text();
 
+    console.log("[DEBUG][YoutubeTranscript] status:", videoPageResponse.status);
+    console.log("[DEBUG][YoutubeTranscript] first 400 chars:", videoPageBody.slice(0, 400));
+
     const splittedHTML = videoPageBody.split('"captions":');
 
     if (splittedHTML.length <= 1) {
