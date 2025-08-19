@@ -100,7 +100,7 @@ class YoutubeTranscript {
             const InnerTubeApiResponse = yield fetch('https://www.youtube.com/youtubei/v1/player?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8', options);
             const response = yield InnerTubeApiResponse.json();
             console.log("[DEBUG][YoutubeTranscript] status:", InnerTubeApiResponse.status);
-            console.log("[DEBUG][YoutubeTranscript] first 400 chars:", InnerTubeApiResponse.json());
+            console.log("[DEBUG][YoutubeTranscript] first 400 chars:", response);
             const { captions: { playerCaptionsTracklistRenderer: captions } } = response;
             if (!captions) {
                 throw new YoutubeTranscriptDisabledError(videoId);
