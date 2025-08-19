@@ -111,10 +111,11 @@ export class YoutubeTranscript {
       options
     );
 
+    const response = await  InnerTubeApiResponse.json();
     console.log("[DEBUG][YoutubeTranscript] status:", InnerTubeApiResponse.status);
     console.log("[DEBUG][YoutubeTranscript] first 400 chars:", InnerTubeApiResponse.json());
 
-    const { captions: { playerCaptionsTracklistRenderer: captions } } = await InnerTubeApiResponse.json();
+    const { captions: { playerCaptionsTracklistRenderer: captions } } = response;
 
     if (!captions) {
       throw new YoutubeTranscriptDisabledError(videoId);
